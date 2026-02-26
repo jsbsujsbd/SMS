@@ -18,7 +18,7 @@ wss.on('connection', (ws)=>{
         console.log('Received message:', msg);
         // ws.send('Message received: ' + message);
         ws.send('服务器已收到消息: ' + msg);
-    });
+    });s
    
     ws.on('close', ()=>{
         console.log('WebSocket connection closed');
