@@ -1,11 +1,13 @@
 const express=require('express');
 const websocket=require('ws');
-const router=require('./interface/index');
+const router=require('./interface/sms_interface/index');
+const img_router=require('./interface/img_interface/index');
 const sessionMiddleware=require('./session/index');
 const app=express();
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(sessionMiddleware)
+app.use('/img', img_router);
 app.use('/api', router);
 const server = require('http').createServer(app);
 const wss=new websocket.Server({server});

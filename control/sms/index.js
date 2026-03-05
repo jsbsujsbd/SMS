@@ -1,9 +1,9 @@
-const {client}=require('../redis_db/index');
+const {client}=require('../../database/redis_db/index');
 exports.build_smscode=async(req,res)=>{
     try{
     const code=Math.floor(Math.random()*9000)+1000;
     console.log(req.query.phone, 'SMS code:', code.toString());
-    await client.setex(`smscode:${req.query.phone}`, 60,code);
+    await client.set(`smscode:${req.query.phone}`,code,'EX',60,'NX');
     req.app.get('wss').clients.forEach((wsclient)=>{
         if(wsclient.readyState===1){
             wsclient.send('您的短信验证码为：' + code+',有效期为60秒');

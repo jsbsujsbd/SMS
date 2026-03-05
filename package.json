@@ -17,7 +17,9 @@
     "express": "^5.2.1",
     "express-session": "^1.19.0",
     "ioredis": "^5.9.3",
+    "mysql2": "^3.18.2",
     "redis": "^5.11.0",
-    "websocket": "^1.0.35"
+    "websocket": "^1.0.35",
+    "ws": "^8.19.0"
   }
 }
