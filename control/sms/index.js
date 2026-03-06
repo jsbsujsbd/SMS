@@ -1,9 +1,16 @@
+const { default: Redis } = require('ioredis');
 const {client}=require('../../database/redis_db/index');
 exports.build_smscode=async(req,res)=>{
     try{
+    const phone=req.query.phone;
+    const isLocked =await client.set(`smscode:${phone}:lock`, 'locked', 'EX', 60, 'NX');
+       if (!isLocked) {
+        // 如果 NX 返回失败，说明 60 秒内已经有人给这个手机号发过了
+        return res.status(429).json({ msg: "请 60 秒后再试" });
+    }
     const code=Math.floor(Math.random()*9000)+1000;
     console.log(req.query.phone, 'SMS code:', code.toString());
-    await client.set(`smscode:${req.query.phone}`,code,'EX',60,'NX');
+     await client.set(`smscode:${phone}`,code,'EX',60);
     req.app.get('wss').clients.forEach((wsclient)=>{
         if(wsclient.readyState===1){
             wsclient.send('您的短信验证码为：' + code+',有效期为60秒');
