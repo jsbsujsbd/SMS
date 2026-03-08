@@ -1,24 +1,35 @@
 const { default: Redis } = require('ioredis');
 const {client}=require('../../database/redis_db/index');
+const {ST}=require('./smsTask');
+const {send_message_team}=require('../../rabbieMQ/index');
 exports.build_smscode=async(req,res)=>{
     try{
+
     const phone=req.query.phone;
     const isLocked =await client.set(`smscode:${phone}:lock`, 'locked', 'EX', 60, 'NX');
-       if (!isLocked) {
-        // 如果 NX 返回失败，说明 60 秒内已经有人给这个手机号发过了
-        return res.status(429).json({ msg: "请 60 秒后再试" });
-    }
+    // if (!isLocked) {
+    //     // 如果 NX 返回失败，说明 60 秒内已经有人给这个手机号发过了
+    //     return res.status(429).json({ msg: "请 60 秒后再试" });
+    // }
+
+
+
     const code=Math.floor(Math.random()*9000)+1000;
     console.log(req.query.phone, 'SMS code:', code.toString());
-     await client.set(`smscode:${phone}`,code,'EX',60);
-    req.app.get('wss').clients.forEach((wsclient)=>{
-        if(wsclient.readyState===1){
-            wsclient.send('您的短信验证码为：' + code+',有效期为60秒');
-        }   
-    });
+   
+    
+    const st=new ST(phone, code.toString());
+    await send_message_team(st);
+
+    await client.set(`smscode:${phone}`,code,'EX',60);
+    // req.app.get('wss').clients.forEach((wsclient)=>{
+    //     if(wsclient.readyState===1){
+    //         wsclient.send('您的短信验证码为：' + st.code+',有效期为60秒');
+    //     }   
+    // });
     res.send({
         status: 200,
-        message: '您的验证码为：'+code+',有效期为60秒',
+        message: '您的验证码为：'+st.code+',有效期为60秒',
         data: code
     })
     }catch(err){
@@ -44,7 +55,7 @@ exports.check_smscode=async(req,res)=>{
          console.log('client 类型:', typeof client);
          console.log('client 构造函数:', client.constructor.name);
          console.log('client.get 类型:', typeof client.get);
-        if(Number(value)===code){
+        if(value && value.toString() === code.toString()){
             req.session.user = { phone: req.body.phone };
             res.send({
                 status: 200,
