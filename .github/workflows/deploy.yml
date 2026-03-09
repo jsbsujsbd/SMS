@@ -1,1 +1,32 @@
+name: SMS-Cluster-Deploy
 
+on:
+  push:
+    branches: [ main ]  # 确保你的主分支叫 main，如果是 master 请修改
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 远程多机并行部署
+        uses: appleboy/ssh-action@master
+        with:
+          # 填入你的服务器 IP（确保 GitHub 能访问到这些 IP）
+          host: 192.168.88.130,192.168.88.131,192.168.88.132
+          username: root
+          # 这是你在 Settings -> Secrets 里存的私钥名字
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "正在更新服务器: $(hostname)"
+            cd /home/it/node_study/sms_node/SMS || exit
+            
+            # 强制同步代码
+            git fetch --all
+            git reset --hard origin/main
+            
+            # 安装依赖并重启
+            # 建议使用 pm2 保持服务高可用
+            npm install --production
+            pm2 restart all || pm2 start index.js --name "sms-server"
+            
+            echo "部署成功！"
