@@ -22,11 +22,7 @@ exports.build_smscode=async(req,res)=>{
     await send_message_team(st);
 
     await client.set(`smscode:${phone}`,code,'EX',60);
-    // req.app.get('wss').clients.forEach((wsclient)=>{
-    //     if(wsclient.readyState===1){
-    //         wsclient.send('您的短信验证码为：' + st.code+',有效期为60秒');
-    //     }   
-    // });
+
     res.send({
         status: 200,
         message: '您的验证码为：'+st.code+',有效期为60秒',

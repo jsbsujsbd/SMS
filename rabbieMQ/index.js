@@ -6,7 +6,7 @@ exports.initMQ=async(wss)=>{
          const coon=await amqp.connect('amqp://myuser:mypassword@192.168.88.130:5672')
          cn=await coon.createChannel()
          await cn.assertQueue(queueName,{ durable: true })
-         cn.prefetch(1);
+         cn.prefetch(500);
          cn.consume(queueName, (msg)=>{
             if(msg!==null){
              const team_data=JSON.parse(msg.content.toString())
@@ -16,9 +16,10 @@ exports.initMQ=async(wss)=>{
              wsclient.send('消息队列的数据' + team_data.code);
         }   
     });
+             cn.ack(msg);
             }
 
-            cn.ack(msg);
+        
          })
           console.log('等待数据...');
     }catch(err){
