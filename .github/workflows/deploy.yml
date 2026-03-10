@@ -26,7 +26,6 @@ jobs:
             
             # 安装依赖并重启
             # 建议使用 pm2 保持服务高可用
-            npm install --production
-            pm2 restart all || pm2 start index.js --name "sms-server"
+            docker compose up -d
             
             echo "部署成功！"
